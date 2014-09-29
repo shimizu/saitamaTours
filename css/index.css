@@ -2,7 +2,7 @@ html, body{
     margin: 0px;
     padding: 0px;
 }
-html, body, #map {
+html, body, #main_view {
 	width: 100%;
 	height: 100%;
 }
@@ -28,3 +28,4 @@ html, body, #map {
 .link {
 	cursor: pointer;
 }
+

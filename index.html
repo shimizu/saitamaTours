@@ -14,7 +14,8 @@
 <!-- user css -->
 <link rel="stylesheet" type="text/css" href="./css/index.css" />
 
-
+<!-- webix -->
+<link rel="stylesheet" href="http://shimz.me/libs/webix/codebase/webix.css" type="text/css" charset="utf-8">
 </head>
 <body>
 	
@@ -26,7 +27,8 @@
 				
 				<h4>観光</h4>
 				<ul>
-					<li><a href="">鉄道ツアー</a></li>
+					<li><a class="tour" data-geojson-file="./_data/tetsudou.json?1" data-start-point="35.906961392699998,139.622833797">鉄道博物館ルート</a></li>
+					<li><a class="tour" data-geojson-file="./_data/bonsai.json?1" data-start-point="35.893851382299999,139.63371283699999">盆栽村ルート</a></li>
 				</ul>
 			</div>
 		</div>
@@ -35,19 +37,24 @@
 	<!-- slide menu end -->
 
 	<!-- mein contents -->	
-	<div id="content" class="snap-content">
+	<div id="snap_content" class="snap-content">
 		<div id="toolbar">
-			<a href="#" id="open-left"></a>
-			<h1>タイトル</h1>
+			<span id="open-left"></span>
+			<h1 >タイトル</h1>
 		</div>
-		<div id="map"></div>			
+		<div id="main_view" data-snap-ignore="true"></div>	
 	</div>
 	<!-- mein contents end -->
 		
 		
 <!-- snap.js(スライドメニューライブラリ) -->		
 <script type="text/javascript" src="./js/snap.js"></script>
-<script type="text/javascript" src="./js/snap_init.js"></script>
+
+
+
+<script src="http://shimz.me/libs/webix/codebase/webix.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/webix_googlemap.js"></script>
+
 
 <!-- Google maps API & D3.js -->		
 <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
