@@ -8,6 +8,22 @@ var googleMapProjection;
 var path;
 var map;
 
+//zoomレベルごとのマーカーの表示サイズ(px)
+var markerScale ={
+	0:6, 1:6, 2:6, 3:8, 4:8, 5:8, 6:8, 9:12, 10:12,
+	11:15,
+	12:20,
+	13:40,
+	14:60,
+	15:80,
+	16:100,
+	17:120,
+	18:130,
+	19:140,
+	20:150,
+	21:160	
+}
+
 
 /*初期化*/
 snapper_init();
@@ -95,11 +111,11 @@ function overlay_init(){
 		svgoverlay = svg.append("g").attr("class", "AdminDivisions");
 		tourElemnt = svgoverlay.append("g")
 		var defs = svg.append("defs");
-		var clipPath = defs.append("clipPath").attr("id", "photoClip");
-		clipPath.append("circle").attr({
+		var clipPathGroup = defs.append("clipPath").attr("id", "photoClip");
+		var clipPath = clipPathGroup.append("circle").attr({
 			cx:0,
 			cy:0,
-			r:35
+			r:25
 		})
 		
 		var markerOverlay = this;
@@ -129,7 +145,9 @@ function drawTour(geojsonFIle){
 	d3.json(geojsonFIle, function(pointjson){
 		//再描画時に呼ばれるコールバック    
 		overlay.draw = function () {
-
+			var markerSize = markerScale[map.getZoom()];
+			
+		
 			//母点位置情報
 			var pointdata = pointjson.features;
 			
@@ -187,25 +205,20 @@ function drawTour(geojsonFIle){
 				.attr({
 					cx:0,
 					cy:0,					
-					r:38,
+					//r:markerSize/4+3,
 					fill:"black",
 				});
 
-				g.append("image")
+				var photo = g.append("image")
 				.attr({
 					"xlink:href":function(d){
 						if (d.properties['pdfmaps_photos'] !="") {
-							console.log("img",d.properties['pdfmaps_photos']);
 							var img = d.properties['pdfmaps_photos'].match(/(https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)/)[0];
 						}else{
 							var img = "img/noImage_s.jpg";
 						}
 						return img;
 					},
-					x:-60,
-					y:-60,
-					"width":120,
-					"height":120,
 					"clip-path":"url(#photoClip)",
 				})
 				.on("click", function(d){
@@ -219,6 +232,18 @@ function drawTour(geojsonFIle){
 					html += data["pdfmaps_photos"];
 					document.querySelector("#detail_content").innerHTML = html;
 				});
+				
+				
+			//マーカーのサイズを調整	
+			d3.selectAll("#photoClip > circle").attr("r", markerSize/4);
+			d3.selectAll(".marker > circle").attr("r", markerSize/4+2);
+			d3.selectAll(".marker > image").attr({
+				x:-(markerSize/2),
+				y:-(markerSize/2),
+				"width":markerSize,
+				"height":markerSize,				
+			});
+
 
 		};
 		
