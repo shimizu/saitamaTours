@@ -1,6 +1,7 @@
 webix.protoUI({
 	name:"google-map",
 	$init:function(config){
+		console.dir(this.$view);
 		this.$view.innerHTML = "<div class='webix_map_content' style='width:100%;height:100%'></div>";
 		this._contentobj = this.$view.firstChild;
 

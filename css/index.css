@@ -29,3 +29,34 @@ html, body, #main_view {
 	cursor: pointer;
 }
 
+.footer {
+	margin-top: 
+}
+
+.bulb {
+  fill: hsl(204, 70%, 23%);
+  
+  -webkit-animation-name: glow-blue;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: ease-in-out;
+  -webkit-animation-direction: alternate;
+  
+  animation-name: glow-blue;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+  
+  -moz-animation: none;
+}
+
+@-webkit-keyframes glow-blue {
+  0% { fill: hsl(204, 80%, 23%); }
+  100% { fill: hsl(204, 80%, 63%); }
+}
+
+@keyframes glow-blue {
+  0% { fill: hsl(204, 80%, 23%); }
+  100% { fill: hsl(204, 80%, 63%); }
+}

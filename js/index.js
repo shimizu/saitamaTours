@@ -1,12 +1,12 @@
 /*後でまとめてリファクタリングする*/
 
-var snapper;
-var overlay = new google.maps.OverlayView();
-var svgoverlay
-var tourElemnt;
-var googleMapProjection;
-var path;
-var map;
+var snapper; //スライドバーオブジェクト
+var overlay = new google.maps.OverlayView(); //オーバーレイオブジェクト
+var svgoverlay; //svgレイヤ
+var tourElemnt; //d3 tourマーカーオブジェクト
+var googleMapProjection; //Google ﾌﾟﾛｼﾞｪｸｼｮﾝ関数
+var path; //svgパスジェネレーター
+var map; //Google Mapオブジェクト
 
 //zoomレベルごとのマーカーの表示サイズ(px)
 var markerScale ={
@@ -45,7 +45,11 @@ d3.selectAll(".tour").on("click", function(){
 	var latlng = this.dataset.startPoint.split(",");
 	map.panTo(new google.maps.LatLng(latlng[0], latlng[1]));
 	snapper.close();
-})
+});
+
+
+
+
 
 
 function snapper_init(){
@@ -72,6 +76,10 @@ function snapper_init(){
 
 function webix_init(){
 	webix.ui.fullScreen();
+	
+	var height = document.querySelector("body").clientHeight - 45;
+	
+	
 	var gmap_View = {
 		id:"map",
 		view:"google-map",
@@ -91,12 +99,27 @@ function webix_init(){
 	
 	webix.ui({
 		container:"main_view",
-		animate:{type:"flip"},
-		cells:[gmap_View, detail_view],
+		height:height,
+		rows:[
+			{cells:[gmap_View, detail_view]},
+			{
+					id:"gpstab",
+					view: "tabbar",
+					type: "iconTop",
+					multiview: true,
+					css:"footer",
+					options:[
+						{  icon:"crosshairs",value: "現在位置に移動" },
+					]
+				}
+		]
 	});
 	
 	$$("back_btn").attachEvent("onItemClick", function(){
 		$$("map").show();
+	});
+	$$("gpstab").attachEvent("onItemClick", function(){
+		moveCurrentPosition();
 	});
 }
 
@@ -115,7 +138,7 @@ function overlay_init(){
 		var clipPath = clipPathGroup.append("circle").attr({
 			cx:0,
 			cy:0,
-			r:25
+			r:markerScale[map.getZoom()]/4
 		})
 		
 		var markerOverlay = this;
@@ -143,6 +166,8 @@ function overlay_init(){
 function drawTour(geojsonFIle){
 	
 	d3.json(geojsonFIle, function(pointjson){
+		console.log(pointjson);
+		
 		//再描画時に呼ばれるコールバック    
 		overlay.draw = function () {
 			var markerSize = markerScale[map.getZoom()];
@@ -158,11 +183,14 @@ function drawTour(geojsonFIle){
 			if(pointdata.length <= 0) return null;
 
 			pointdata.forEach(function(d) {
-				var b= d.geometry.coordinates;
+				var b　= d.geometry.coordinates;
 				var a = googleMapProjection(b)
 				positions.push(a);
 				points.coordinates.push([d.geometry.coordinates[0], d.geometry.coordinates[1]]);
+				points.hide = (d.properties["04_順路"] == 0) 
 			});
+			
+			console.log("points.coordinates", points.coordinates);
 			
 
 			    //ライン追加
@@ -173,7 +201,8 @@ function drawTour(geojsonFIle){
 						"stroke": "green",
 						"stroke-width": 6
 					}
-				var line = tourElemnt.selectAll(".line")
+					
+				if(!points.hide ) var line = tourElemnt.selectAll(".line")
 					.data([points])
 					.attr(lineAttr)	
 					.enter()
@@ -186,11 +215,10 @@ function drawTour(geojsonFIle){
 				"class": "marker",
 				"transform": function(d, i){
 					return "translate("+[positions[i][0], positions[i][1]]+")";
-				}
-				
+				}				
 			}
 	
-			var g =tourElemnt.selectAll(".marker")
+			var g = tourElemnt.selectAll(".marker")
 				.data(pointdata)
 				.attr(gAttr)
 				.enter()
@@ -251,6 +279,75 @@ function drawTour(geojsonFIle){
 		overlay.draw();		
 	});
 
+}
+
+
+function moveCurrentPosition(){
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(
+			successCallback, errorCallback
+		);
+	} else {
+		alert("この端末ではGPS情報を取得できません");
+	}
+	
+	function successCallback(position) {
+		var gl_text = "緯度：" + position.coords.latitude + "\n";
+		gl_text += "経度：" + position.coords.longitude + "\n";
+		gl_text += "高度：" + position.coords.altitude + "\n";
+		gl_text += "緯度・経度の誤差：" + position.coords.accuracy + "\n";
+		gl_text += "高度の誤差：" + position.coords.altitudeAccuracy + "\n";
+		gl_text += "方角：" + position.coords.heading + "\n";
+		gl_text += "速度：" + position.coords.speed + "\n";
+		console.log(gl_text);
+		map.panTo(new google.maps.LatLng(position.coords.latitude, position.coords.longitude));
+		
+		var gAttr ={
+			"class": "currentPostion bulb",
+			"transform": function(d, i){
+				console.log(d);
+				return "translate("+[d[0], d[1]]+")";
+			}				
+		}
+
+		var g = tourElemnt.selectAll(".currentPostion")
+		.data([googleMapProjection([position.coords.longitude, position.coords.latitude])])
+		.attr(gAttr)
+		.enter()
+		.append("g")
+		.attr(gAttr)
+
+		g.append("circle")
+			.attr({
+				cx:0,
+				cy:0,					
+				r:8,
+				stroke:"black",
+				"stroke-width":4
+			});
+		
+		svgoverlay.select(".currentPostionMarker")
+		
+		
+		
+	}
+	function errorCallback(error) {
+		var err_msg = "";
+		switch(error.code)
+		{
+		  case 1:
+			err_msg = "位置情報の利用が許可されていません";
+			break;
+		  case 2:
+			err_msg = "デバイスの位置が判定できません";
+			break;
+		  case 3:
+			err_msg = "タイムアウトしました";
+			break;
+		}
+		alert(err_msg);
+		//デバッグ用→　document.getElementById("show_result").innerHTML = error.message;
+	}
 }
 
 /* モバイルsafariがリンクを開くのを防ぐ */
